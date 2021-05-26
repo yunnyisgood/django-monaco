@@ -3,25 +3,22 @@ from urllib.request import urlopen
 class BugsMusic(object):
 
     url = ''
+    class_name = []
 
-
-
-    @staticmethod
-    def ranking(url, class_name):
-        soup = BeautifulSoup(urlopen(url), 'lxml')
+#   @staticmethod  -> 아래 self.url을 사용하면서 메모리에 할당됨 -> staticmethod가 아니어야 함.
+    def ranking(self):
+        soup = BeautifulSoup(urlopen(self.url), 'lxml')
         count = 0
         print('<<Artist Ranking>>')
-        for i in soup.find_all(name='p', attrs=({"class":class_name[0]})):
+        for i in soup.find_all(name='p', attrs=({"class":self.class_name[0]})):
             count += 1
             print(f'{str(count)} 위')
-            print(f'{class_name[0]}: {i.find("a").text}')
+            print(f'{self.class_name[0]}: {i.find("a").text}')
         print('<<Title Ranking>>')
-        for i in soup.find_all(name='p', attrs=({"class":class_name[0]})):
+        for i in soup.find_all(name='p', attrs=({"class":self.class_name[1]})):
             count += 1
             print(f'{str(count)} 위')
-            print(f'{class_name[0]}: {i.find("a").text}')
-
-
+            print(f'{self.class_name[1]}: {i.find("a").text}')
 
     @staticmethod
     def main():
@@ -32,11 +29,13 @@ class BugsMusic(object):
                 break
 
             elif menu == 1:
-                url = input('url 입력하세요')
-                # BugsMusic(input('url을 입력하세요'))
+                bugs.url = input('url 입력하세요')
 
             elif menu == 2:
-                bugs.ranking(url, ["artist", "title"])
+                bugs.class_name.append("artist")
+                bugs.class_name.append("title")
+                bugs.ranking()
+                # bugs.ranking(["artist", "title"])  # 리스트에 담기
             else:
                 print('다시 입력해주세요')
                 continue
