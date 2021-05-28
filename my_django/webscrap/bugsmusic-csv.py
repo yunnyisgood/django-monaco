@@ -39,13 +39,15 @@ class Bugs3(object):
         #     self.title_ls[i] = self.artist_ls[j]
 
     def dict_to_dataFrame(self):
-        dt = self.dict
-        self.df = pd.DataFrame.from_dict(dt,orient='index')
+        values = [str(i) for i in self.dict.values()]
+        for i in range(0, len(self.dict)):
+            self.dict[str(i)] = values
+        self.df = pd.DataFrame.from_dict(self.dict)
         print(self.df)
-        # df.to_csv("C:\Users\bitcamp\to_csv/test_csv")
+
 
     def dataFrame_to_csv(self):
-        path = './data/bugs.csv'
+        path = './data/bugs2.csv'
         self.df.to_csv(path, sep=',', na_rep='Nan')
 
 
