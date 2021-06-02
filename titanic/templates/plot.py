@@ -8,8 +8,8 @@ rc('font', family = font_manager.FontProperties(fname='C:/Windows/Fonts/H2GTRE.t
 
 class Plot(object):
     # 시각화를 하기 위해 Template에 모델의 객체를 생성
-    dataset: object = Dataset()
-    service: object = Service()
+    dataset = Dataset()
+    service = Service()
 
     def __init__(self, fname):
         self.entity = self.service.new_model(fname)  # 원본

@@ -17,11 +17,10 @@ if __name__ == '__main__':
             # plot.draw_sex()
             plot.draw_embarked()
         elif menu == '2':
-            controller.modeling('train.csv','test.csv')
+            df = controller.modeling('train.csv','test.csv')
         elif menu == '3':
-            controller.preprocess('train.csv','test.csv')
-            # controller.test('train.csv','test.csv')
+            df = controller.learning('train.csv','test.csv')
         elif menu == '4':
-            pass
+            df = controller.submit('train.csv','test.csv')
         else:
             continue

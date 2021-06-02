@@ -1,5 +1,9 @@
+import pandas as pd
+from sklearn.svm import SVC
+
 from titanic.models.dataset import Dataset
 from titanic.models.service import Service
+from sklearn.ensemble import RandomForestClassifier
 
 
 class Controller(object):
@@ -9,31 +13,39 @@ class Controller(object):
 
     def modeling(self, train, test) -> object:
         service = self.service
-        this = self.preprocess(train, test) # 모델링한 데이터를 this로 지정
+        this = self.preprocess(train, test)
         this.label = service.create_label(this)
         this.train = service.create_train(this)
         return this
 
-    def preprocess(self, train, test) -> object: # pre~ -> 전처리 메소드
+    def learning(self, train, test):
+        this = self.modeling(train, test)
+        print(f'사이킷런의 SVC 알고리즘 정확도 : {self.service.accuracy_by_svm(this)} %')
+
+    def submit(self, train, test):
+        this = self.modeling(train, test)
+        clf = RandomForestClassifier()
+        clf.fit(this.train, this.label)
+        prediction = clf.predict(this.test)
+        pd.DataFrame({'PassengerId':this.id, 'Survived':prediction}).to_csv('./data/submission.csv',
+                                                                            index=False)
+
+    def preprocess(self, train, test) -> object:
         service = self.service
         this = self.dataset
 
-        # 초기 모델 생성 => DataFrame으로 변환
         this.train = service.new_model(train)
         this.test = service.new_model(test)
+        this.id = this.test['PassengerId']
 
-        # 불필요한 fearture(Cabin, Ticket 제거)
-        this = service.drop_feature(this, "Cabin")
-        this = service.drop_feature(this, "Ticket")
-
-        # nominal, ordinal로 정형화
         this = service.embarked_nominal(this)
         this = service.title_nominal(this)
-
-        # 불필요한 feature(Name) 제거
-        this = service.drop_feature(this, "Name")
         this = service.gender_nominal(this)
-        this = service.drop_feature(this, "Sex")
+        this = service.age_ordinal(this)
+        this = service.fare_ordinal(this)
+
+
+        this = service.drop_feature(this, "Cabin", "Ticket", "Name", "Sex", "Age", "Fare")
 
         self.print_this(this)
 
@@ -43,12 +55,14 @@ class Controller(object):
     def print_this(this):
         print('*'*100)
         print(this)
-        print(f'Train 의 type 은 {type(this.train)} 이다.')
-        print(f'Train 의 column 은 {this.train.columns} 이다.')
-        print(f'Train 의 상위 5개 행은 {type(this.train.head())} 이다.')
-        print(f'Test 의 type 은 {type(this.test)} 이다.')
-        print(f'Test 의 column 은 {this.test.columns} 이다.')
-        print(f'Test 의 하위 5개 행은 {type(this.test.head())} 이다.')
+        print(f'Train 의 type \n {type(this.train)} 이다.')
+        print(f'Train 의 column \n {this.train.columns} 이다.')
+        print(f'Train 의 상위 5개 행\n {type(this.train.head(1))} 이다.')
+        print(f'Train 의 null\n {this.train.isnull().sum()}개')
+        print(f'Test 의 type \n {type(this.test)} 이다.')
+        print(f'Test 의 column \n {this.test.columns} 이다.')
+        print(f'Test 의 상위 5개 행\n {type(this.test.head(1))} 이다.')
+        print(f'Test 의 null \n {this.test.isnull().sum()}개')
         print('*'*100)
 
 

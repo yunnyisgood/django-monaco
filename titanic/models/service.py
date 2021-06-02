@@ -1,19 +1,23 @@
+import numpy as np
 from titanic.models.dataset import Dataset
 import pandas as pd
+from sklearn.svm import SVC
+from sklearn.model_selection import KFold
+from sklearn.model_selection import cross_val_score
 
 
 class Service(object):
 
     dataset = Dataset()
 
-    # 모델링 작업
+
     def new_model(self, payload) -> object:
         this = self.dataset
         this.context = './data/'
-        this.fname = payload  # payload => 전송되는 데이터
-        return pd.read_csv(this.context + this.fname)  # csv는 딕셔너리 형태 -> 이를 dataFrame으로 변환
+        this.fname = payload
+        return pd.read_csv(this.context + this.fname)
 
-    # 여기서부터 알고리즘 => 머신러닝
+
     @staticmethod
     def create_train(this) -> object:
         return this.train.drop('Survived', axis = 1)
@@ -23,9 +27,10 @@ class Service(object):
         return this.train['Survived']
 
     @staticmethod
-    def drop_feature(this, feature) -> object:  # 안쓰는 칼럼 drop
-        this.train = this.train.drop([feature], axis = 1)
-        this.test = this.test.drop([feature], axis=1)
+    def drop_feature(this, *feature) -> object:
+        for i in feature:
+           this.train = this.train.drop([i], axis=1)
+           this.test = this.test.drop([i], axis=1)
         return this
 
     @staticmethod
@@ -36,10 +41,16 @@ class Service(object):
         this.test['Embarked'] = this.test['Embarked'].map({'S': 1, 'C': 2, 'Q': 3} )
         return this
 
-
     @staticmethod
-    def fare_band_fill_na(this) -> object:  # 데이터 프레임은 객체이기 때문에 -> object
-        # 요금을 구간별로 구분한다.
+    def fare_ordinal(this) -> object:
+        this.test['Fare'] = this.test['Fare'].fillna(1)
+        this.train['FareBand'] = pd.qcut(this.train['Fare'], 4)
+
+        bins = [-1, 8, 15, 31, np.inf]
+        this.train = this.train.drop(['FareBand'], axis=1)
+        for these in this.train, this.test:
+            these['FareBand'] = pd.cut(these['Fare'], bins=bins, labels=[1, 2, 3, 4])
+
         return this
 
     @staticmethod
@@ -62,14 +73,32 @@ class Service(object):
     def gender_nominal(this) -> object:
         combine = [this.train, this.test]
         gender_mapping = {'male': 0, 'female': 1}
-        for dataset in combine:
-            dataset['Gender'] = dataset['Sex'].map(gender_mapping)
+        for these in combine:
+            these['Gender'] = these['Sex'].map(gender_mapping)
         return this
 
     @staticmethod
     def age_ordinal(this) -> object:
+        train = this.train
+        test = this.test
+        for data in train, test:
+            data['Age'] = data['Age'].fillna(-0.5)
+        bins = [-1, 0, 5, 12, 18, 24, 35, 68, np.inf]
+        labels = ['Unknown', 'Baby', 'Child', 'Teenager', 'Student', 'Young Adult', 'Adult', 'Senior']
+        age_title_mapping = {'Unknown':0, 'Baby':1, 'Child':2, 'Teenager':3, 'Student':4,
+                             'Young Adult':5, 'Adult':6, 'Senior':7}
+        for data in train, test:
+            data['AgeGroup'] = pd.cut(data['Age'], bins=bins, labels=labels)
+            data['AgeGroup'] = data['AgeGroup'].map(age_title_mapping)
         return this
 
+
     @staticmethod
-    def create_k_fold(this) -> object:
-        return this
+    def create_k_fold() -> object:
+        return KFold(n_splits=10, shuffle=True, random_state=0)
+
+    def accuracy_by_svm(self, this):
+        score = cross_val_score(SVC(), this.train, this.label,
+                                cv=KFold(n_splits=10, shuffle=True, random_state=0),
+                                n_jobs=1, scoring='accuracy')
+        return round(np.mean(score)*100, 2)
