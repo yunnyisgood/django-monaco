@@ -3,7 +3,7 @@ from titanic.models.service import Service
 import matplotlib.pyplot as plt
 from matplotlib import font_manager, rc
 import seaborn as sns
-rc('font', family = font_manager.FontProperties(fname='C:/Windows/Fonts/H2GTRE.ttf').get_name())
+rc('font', family = font_manager.FontProperties(fname='/Users/hwangchaeyeon/library/Fonts/hygothic-extra.ttf').get_name())
 
 
 class Plot(object):

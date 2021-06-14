@@ -10,13 +10,11 @@ class Service(object):
 
     dataset = Dataset()
 
-
     def new_model(self, payload) -> object:
         this = self.dataset
         this.context = './data/'
         this.fname = payload
         return pd.read_csv(this.context + this.fname)
-
 
     @staticmethod
     def create_train(this) -> object:
@@ -27,7 +25,7 @@ class Service(object):
         return this.train['Survived']
 
     @staticmethod
-    def drop_feature(this, *feature) -> object:
+    def drop_feature(this, *feature) -> object:  # 여러개의 인자를 사용할 경우 *을 매개변수 앞에 붙여준다.
         for i in feature:
            this.train = this.train.drop([i], axis=1)
            this.test = this.test.drop([i], axis=1)
